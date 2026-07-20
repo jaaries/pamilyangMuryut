@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>The Family Reel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:      #F6F1E7;
+    --ink:        #211F1D;
+    --rust:       #B5602E;
+    --teal:       #2C6764;
+    --sprocket:   #8B8578;
+    --line:       rgba(33,31,29,0.14);
+    --paper-dim:  #EDE6D6;
+    --font-display: 'Fraunces', serif;
+    --font-body: 'Inter', sans-serif;
+    --font-mono: 'IBM Plex Mono', monospace;
+  }
+
+  *{ box-sizing:border-box; }
+  body{ margin:0; background:var(--paper); color:var(--ink); font-family:var(--font-body); }
+
+  /* ---------- film strip chrome ---------- */
+  .filmstrip-edge{
+    height:22px;
+    background-image: radial-gradient(circle, var(--paper) 5px, var(--sprocket) 5px 5.5px, transparent 5.6px);
+    background-size: 34px 22px;
+    background-repeat: repeat-x;
+    background-position: center;
+    background-color:var(--ink);
+  }
+
+  header{
+    padding: 56px 24px 40px;
+    max-width: 980px;
+    margin: 0 auto;
+  }
+  .eyebrow{
+    font-family:var(--font-mono);
+    font-size:13px;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--rust);
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .eyebrow::before{ content:"●"; font-size:10px; }
+  h1{
+    font-family:var(--font-display);
+    font-weight:600;
+    font-optical-sizing:auto;
+    font-size:clamp(40px, 7vw, 72px);
+    line-height:0.98;
+    margin: 10px 0 14px;
+    letter-spacing:-0.01em;
+  }
+  header p.sub{
+    font-size:17px;
+    max-width:560px;
+    line-height:1.5;
+    color:rgba(33,31,29,0.72);
+    margin:0;
+  }
+  #frame-counter{ font-family:var(--font-mono); }
+
+  main{ max-width: 980px; margin:0 auto; padding: 0 24px 100px; }
+
+  /* ---------- upload card ---------- */
+  .upload-card{
+    background:var(--paper-dim);
+    border:1px solid var(--line);
+    border-radius:2px;
+    padding:28px;
+    margin: 8px 0 56px;
+    position:relative;
+  }
+  .upload-card::before{
+    content:"LOAD FILM";
+    position:absolute;
+    top:-11px; left:24px;
+    background:var(--ink);
+    color:var(--paper);
+    font-family:var(--font-mono);
+    font-size:11px;
+    letter-spacing:0.1em;
+    padding:3px 10px;
+  }
+  .upload-steps{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap:16px;
+    margin-bottom:18px;
+  }
+  @media (max-width: 720px){ .upload-steps{ grid-template-columns:1fr; } }
+
+  label{
+    display:block;
+    font-family:var(--font-mono);
+    font-size:11px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:rgba(33,31,29,0.6);
+    margin-bottom:6px;
+  }
+  input[type=text]{
+    width:100%;
+    font-family:var(--font-body);
+    font-size:15px;
+    padding:11px 12px;
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:1px;
+    color:var(--ink);
+  }
+  input[type=text]:focus, button:focus-visible, .dropzone:focus-visible{
+    outline: 2px solid var(--teal);
+    outline-offset: 1px;
+  }
+
+  /* ---------- dropzone ---------- */
+  .dropzone{
+    border: 1.5px dashed var(--sprocket);
+    border-radius:2px;
+    background: var(--paper);
+    padding: 28px 20px;
+    text-align:center;
+    cursor:pointer;
+    transition: border-color 0.15s ease, background 0.15s ease;
+  }
+  .dropzone:hover{ border-color:var(--rust); }
+  .dropzone.dragover{
+    border-color:var(--rust);
+    background: rgba(181,96,46,0.06);
+  }
+  .dropzone input[type=file]{ display:none; }
+  .dropzone-icon{
+    width:34px; height:34px;
+    margin:0 auto 10px;
+    color:var(--sprocket);
+    display:block;
+  }
+  .dropzone:hover .dropzone-icon, .dropzone.dragover .dropzone-icon{ color:var(--rust); }
+  .dropzone-title{
+    font-family:var(--font-body);
+    font-weight:600;
+    font-size:14.5px;
+    margin-bottom:3px;
+  }
+  .dropzone-title .link{ color:var(--rust); text-decoration:underline; text-underline-offset:2px; }
+  .dropzone-hint{
+    font-family:var(--font-mono);
+    font-size:11px;
+    color:rgba(33,31,29,0.5);
+  }
+
+  /* ---------- selected file chips ---------- */
+  .file-chips{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-top:14px;
+  }
+  .chip{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:1px;
+    padding:5px 6px 5px 5px;
+    max-width:220px;
+  }
+  .chip-thumb{
+    width:28px; height:28px;
+    object-fit:cover;
+    background:var(--ink);
+    flex-shrink:0;
+    border-radius:1px;
+  }
+  .chip-thumb.video-thumb{
+    display:flex; align-items:center; justify-content:center;
+    color:var(--paper);
+    font-family:var(--font-mono);
+    font-size:14px;
+  }
+  .chip-name{
+    font-size:12px;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    max-width:120px;
+  }
+  .chip-remove{
+    background:none;
+    border:none;
+    cursor:pointer;
+    color:rgba(33,31,29,0.45);
+    font-size:15px;
+    line-height:1;
+    padding:2px 4px;
+    flex-shrink:0;
+  }
+  .chip-remove:hover{ color:#A13A2A; }
+
+  .caption-row{ margin: 18px 0 0; }
+
+  .upload-footer{
+    display:flex;
+    justify-content:flex-end;
+    margin-top:18px;
+  }
+
+  button.primary{
+    font-family:var(--font-mono);
+    font-size:13px;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    background:var(--rust);
+    color:var(--paper);
+    border:none;
+    padding:13px 26px;
+    cursor:pointer;
+    border-radius:1px;
+    white-space:nowrap;
+    transition: transform 0.12s ease, background 0.15s ease;
+  }
+  button.primary:hover{ background:#9C4F26; }
+  button.primary:active{ transform: scale(0.98); }
+  button.primary:disabled{ background:var(--sprocket); cursor:not-allowed; }
+
+  #status{
+    font-family:var(--font-mono);
+    font-size:12.5px;
+    margin-top:12px;
+    min-height:16px;
+    color:var(--teal);
+  }
+  #status.error{ color:#A13A2A; }
+
+  /* ---------- section head ---------- */
+  .section-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    border-bottom:1px solid var(--line);
+    padding-bottom:10px;
+    margin-bottom:24px;
+  }
+  .section-head h2{
+    font-family:var(--font-display);
+    font-size:22px;
+    font-weight:600;
+    margin:0;
+  }
+  .section-head span{
+    font-family:var(--font-mono);
+    font-size:12px;
+    color:rgba(33,31,29,0.5);
+  }
+
+  /* ---------- contact sheet grid ---------- */
+  .sheet{
+    display:grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap:20px;
+  }
+  .frame{
+    background:var(--ink);
+    padding:10px 10px 0;
+    border-radius:1px;
+    position:relative;
+  }
+  .frame-number{
+    font-family:var(--font-mono);
+    color:var(--paper);
+    font-size:10.5px;
+    letter-spacing:0.05em;
+    opacity:0.75;
+    display:block;
+    margin-bottom:8px;
+  }
+  .frame-media{
+    width:100%;
+    aspect-ratio: 1 / 1;
+    object-fit:cover;
+    background:#000;
+    display:block;
+  }
+  .frame-media-wrap{ position:relative; overflow:hidden; }
+  .frame-meta{
+    padding:10px 2px 12px;
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    gap:8px;
+  }
+  .frame-meta .who{
+    color:var(--paper);
+    font-size:13px;
+    font-weight:500;
+    line-height:1.3;
+  }
+  .frame-meta .who small{
+    display:block;
+    font-family:var(--font-mono);
+    font-size:10.5px;
+    color:rgba(246,241,231,0.55);
+    margin-top:2px;
+    font-weight:400;
+  }
+  .frame-caption{
+    color:rgba(246,241,231,0.85);
+    font-size:12.5px;
+    padding:0 2px 10px;
+    line-height:1.4;
+  }
+  a.download{
+    font-family:var(--font-mono);
+    font-size:11px;
+    color:var(--paper);
+    background:rgba(246,241,231,0.14);
+    border:1px solid rgba(246,241,231,0.3);
+    padding:6px 9px;
+    border-radius:1px;
+    text-decoration:none;
+    white-space:nowrap;
+    flex-shrink:0;
+  }
+  a.download:hover{ background:rgba(246,241,231,0.24); }
+
+  .empty{
+    font-family:var(--font-mono);
+    font-size:13px;
+    color:rgba(33,31,29,0.55);
+    border:1px dashed var(--line);
+    padding:40px 20px;
+    text-align:center;
+    border-radius:2px;
+  }
+
+  footer{
+    text-align:center;
+    font-family:var(--font-mono);
+    font-size:11px;
+    color:rgba(33,31,29,0.4);
+    padding:30px 24px 50px;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    button.primary{ transition:none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="filmstrip-edge"></div>
+
+<header>
+  <div class="eyebrow">Family Archive &mdash; No login required</div>
+  <h1>The Family Reel</h1>
+  <p class="sub">Every photo and clip anyone in the family adds, developed here for everyone to see, keep, and download. <span id="frame-counter"></span></p>
+</header>
+
+<main>
+  <div class="upload-card">
+    <form id="upload-form">
+      <div class="upload-steps">
+        <div>
+          <label for="uploader-name">1. Your name</label>
+          <input type="text" id="uploader-name" placeholder="e.g. Aunt Rosa" required />
+        </div>
+        <div>
+          <label for="caption-input">2. Caption (optional)</label>
+          <input type="text" id="caption-input" placeholder="e.g. Sunday lunch at Grandma's" />
+        </div>
+      </div>
+
+      <label>3. Add photos or videos</label>
+      <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="Choose or drop photos and videos">
+        <svg class="dropzone-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">
+          <rect x="3" y="5" width="18" height="15" rx="1.5"/>
+          <path d="M3 16l4.5-4.5a1.5 1.5 0 0 1 2.1 0L14 16"/>
+          <path d="M13.5 14.5l1.6-1.6a1.5 1.5 0 0 1 2.1 0L21 16.5"/>
+          <circle cx="8" cy="9.5" r="1.4"/>
+          <path d="M8 2.5h8M12 2.5v5" stroke-linecap="round"/>
+        </svg>
+        <div class="dropzone-title">Drop them here, or <span class="link">browse</span></div>
+        <div class="dropzone-hint">JPG, PNG, HEIC, MP4, MOV &mdash; add as many as you like</div>
+        <input type="file" id="file-input" accept="image/*,video/*" multiple />
+      </div>
+
+      <div class="file-chips" id="file-chips"></div>
+
+      <div class="upload-footer">
+        <button type="submit" class="primary" id="submit-btn">Add to reel</button>
+      </div>
+      <div id="status"></div>
+    </form>
+  </div>
+
+  <div class="section-head">
+    <h2>Contact sheet</h2>
+    <span id="sheet-meta">loading&hellip;</span>
+  </div>
+
+  <div class="sheet" id="sheet"></div>
+</main>
+
+<footer>Developed in the family darkroom &middot; stored via Cloudinary &middot; indexed via Supabase</footer>
+
+<div class="filmstrip-edge"></div>
+
+<script>
+  // ---- CONFIG ----
+  const CLOUDINARY_CLOUD_NAME = "hjagtmmt";
+  const CLOUDINARY_UPLOAD_PRESET = "family photos";
+  const SUPABASE_URL = "https://yopxgvauhxfjwxxufcys.supabase.co";
+  const SUPABASE_KEY = "sb_publishable_xmjlYA4lkXCNVWOopLHZ7g_qAltH_fo";
+
+  const sheetEl = document.getElementById('sheet');
+  const sheetMeta = document.getElementById('sheet-meta');
+  const frameCounter = document.getElementById('frame-counter');
+  const statusEl = document.getElementById('status');
+  const form = document.getElementById('upload-form');
+  const submitBtn = document.getElementById('submit-btn');
+  const dropzone = document.getElementById('dropzone');
+  const fileInput = document.getElementById('file-input');
+  const chipsEl = document.getElementById('file-chips');
+
+  let selectedFiles = [];
+
+  function setStatus(msg, isError){
+    statusEl.textContent = msg;
+    statusEl.classList.toggle('error', !!isError);
+  }
+
+  function downloadUrl(url, resourceType){
+    // insert fl_attachment so Cloudinary serves it as a forced download
+    const marker = '/upload/';
+    const idx = url.indexOf(marker);
+    if(idx === -1) return url;
+    return url.slice(0, idx + marker.length) + 'fl_attachment/' + url.slice(idx + marker.length);
+  }
+
+  function formatDate(iso){
+    const d = new Date(iso);
+    return d.toLocaleDateString(undefined, { year:'numeric', month:'short', day:'numeric' });
+  }
+
+  async function fetchMedia(){
+    sheetMeta.textContent = "loading…";
+    try{
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/media?select=*&order=created_at.desc`, {
+        headers: {
+          apikey: SUPABASE_KEY,
+          Authorization: `Bearer ${SUPABASE_KEY}`
+        }
+      });
+      if(!res.ok) throw new Error('Could not reach the gallery index');
+      const rows = await res.json();
+      renderSheet(rows);
+    }catch(err){
+      sheetMeta.textContent = "";
+      sheetEl.innerHTML = `<div class="empty">Couldn't load the gallery. ${err.message}</div>`;
+    }
+  }
+
+  function renderSheet(rows){
+    frameCounter.textContent = rows.length ? `— ${rows.length} frame${rows.length===1?'':'s'} developed so far.` : '';
+    sheetMeta.textContent = rows.length ? `${rows.length} frame${rows.length===1?'':'s'}` : 'no frames yet';
+
+    if(!rows.length){
+      sheetEl.innerHTML = `<div class="empty">No photos or videos yet. Be the first to load some film.</div>`;
+      return;
+    }
+
+    sheetEl.innerHTML = rows.map((row, i) => {
+      const num = String(rows.length - i).padStart(3, '0');
+      const media = row.resource_type === 'video'
+        ? `<video class="frame-media" src="${row.file_url}" controls preload="metadata"></video>`
+        : `<img class="frame-media" src="${row.file_url}" loading="lazy" alt="${row.caption ? row.caption.replace(/"/g,'&quot;') : 'Family photo'}" />`;
+
+      return `
+        <div class="frame">
+          <span class="frame-number">FRAME ${num}</span>
+          <div class="frame-media-wrap">${media}</div>
+          ${row.caption ? `<div class="frame-caption">${row.caption}</div>` : ''}
+          <div class="frame-meta">
+            <div class="who">${row.uploader_name}<small>${formatDate(row.created_at)}</small></div>
+            <a class="download" href="${downloadUrl(row.file_url, row.resource_type)}" download>Download</a>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  async function uploadOne(file, uploaderName, caption){
+    const fd = new FormData();
+    fd.append('file', file);
+    fd.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/auto/upload`, {
+      method: 'POST',
+      body: fd
+    });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error?.message || 'Upload failed');
+
+    const insertRes = await fetch(`${SUPABASE_URL}/rest/v1/media`, {
+      method: 'POST',
+      headers: {
+        apikey: SUPABASE_KEY,
+        Authorization: `Bearer ${SUPABASE_KEY}`,
+        'Content-Type': 'application/json',
+        Prefer: 'return=minimal'
+      },
+      body: JSON.stringify({
+        uploader_name: uploaderName,
+        file_url: data.secure_url,
+        resource_type: data.resource_type === 'video' ? 'video' : 'image',
+        caption: caption || null
+      })
+    });
+    if(!insertRes.ok){
+      const t = await insertRes.text();
+      throw new Error('Saved to storage but failed to index it: ' + t);
+    }
+  }
+
+  // ---- dropzone interactions ----
+  dropzone.addEventListener('click', () => fileInput.click());
+  dropzone.addEventListener('keydown', (e) => {
+    if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); fileInput.click(); }
+  });
+  ['dragenter','dragover'].forEach(evt =>
+    dropzone.addEventListener(evt, (e) => { e.preventDefault(); dropzone.classList.add('dragover'); })
+  );
+  ['dragleave','drop'].forEach(evt =>
+    dropzone.addEventListener(evt, (e) => { e.preventDefault(); dropzone.classList.remove('dragover'); })
+  );
+  dropzone.addEventListener('drop', (e) => {
+    addFiles(e.dataTransfer.files);
+  });
+  fileInput.addEventListener('change', () => {
+    addFiles(fileInput.files);
+    fileInput.value = ''; // allow re-selecting the same file later
+  });
+
+  function addFiles(fileList){
+    for(const file of fileList) selectedFiles.push(file);
+    renderChips();
+  }
+
+  function removeFile(index){
+    const removed = selectedFiles[index];
+    if(removed && removed._previewUrl) URL.revokeObjectURL(removed._previewUrl);
+    selectedFiles.splice(index, 1);
+    renderChips();
+  }
+
+  function renderChips(){
+    chipsEl.innerHTML = selectedFiles.map((file, i) => {
+      const isVideo = file.type.startsWith('video/');
+      let thumb;
+      if(isVideo){
+        thumb = `<div class="chip-thumb video-thumb">&#9654;</div>`;
+      }else{
+        if(!file._previewUrl) file._previewUrl = URL.createObjectURL(file);
+        thumb = `<img class="chip-thumb" src="${file._previewUrl}" alt="" />`;
+      }
+      return `
+        <div class="chip">
+          ${thumb}
+          <span class="chip-name">${file.name}</span>
+          <button type="button" class="chip-remove" data-index="${i}" aria-label="Remove ${file.name}">&times;</button>
+        </div>
+      `;
+    }).join('');
+
+    chipsEl.querySelectorAll('.chip-remove').forEach(btn => {
+      btn.addEventListener('click', () => removeFile(Number(btn.dataset.index)));
+    });
+  }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const uploaderName = document.getElementById('uploader-name').value.trim();
+    const caption = document.getElementById('caption-input').value.trim();
+    const files = selectedFiles;
+
+    if(!uploaderName || !files.length){
+      setStatus('Add your name and at least one photo or video.', true);
+      return;
+    }
+
+    submitBtn.disabled = true;
+    let done = 0;
+    try{
+      for(const file of files){
+        setStatus(`Developing ${done+1} of ${files.length}: ${file.name}…`);
+        await uploadOne(file, uploaderName, caption);
+        done++;
+      }
+      setStatus(`Added ${done} file${done===1?'':'s'} to the reel.`);
+      selectedFiles.forEach(f => f._previewUrl && URL.revokeObjectURL(f._previewUrl));
+      selectedFiles = [];
+      renderChips();
+      form.reset();
+      fetchMedia();
+    }catch(err){
+      setStatus(`Stopped after ${done} of ${files.length}: ${err.message}`, true);
+    }finally{
+      submitBtn.disabled = false;
+    }
+  });
+
+  fetchMedia();
+</script>
+
+</body>
+</html>
